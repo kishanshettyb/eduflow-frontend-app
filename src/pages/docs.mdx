@@ -11,19 +11,19 @@ yarn add nextra nextra-theme-docs
 Create the following `next.config.mjs` file in your project's root directory:
 
 ```js copy
-import nextra from "nextra";
+import nextra from 'nextra'
 /** @type {import('next').NextConfig} */
 
-const nextConfig = {};
+const nextConfig = {}
 const withNextra = nextra({
-  theme: "nextra-theme-docs",
-  themeConfig: "./theme.config.jsx",
-});
+  theme: 'nextra-theme-docs',
+  themeConfig: './theme.config.jsx'
+})
 
-export default withNextra(nextConfig);
+export default withNextra(nextConfig)
 ```
 
-### Create Docs Theme Config
+### Create Docs Theme Config Text
 
 Lastly, create the corresponding `theme.config.jsx` file in your project's root directory. This will be used to configure the Nextra Docs theme:
 
@@ -31,10 +31,10 @@ Lastly, create the corresponding `theme.config.jsx` file in your project's root 
 export default {
   logo: <span>EduFLow Documentation</span>,
   project: {
-    link: "https://github.com/shuding/nextra",
-  },
+    link: 'https://github.com/shuding/nextra'
+  }
   // ... other theme options
-};
+}
 ```
 
 ### Ready to Go!
