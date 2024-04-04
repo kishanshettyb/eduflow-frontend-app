@@ -1,0 +1,233 @@
+# React Router Structure
+
+## Basic React Router setup
+
+```js copy
+import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Home from './pages/Home'
+import About from './pages/About'
+import Profile from './pages/Profile'
+import Checkout from './pages/Checkout'
+import Login from './pages/Login'
+import Maps from './pages/Maps'
+import Settings from './pages/Settings'
+import Store from './pages/Store'
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/maps" element={<Maps />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/store" element={<Store />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
+export default App
+```
+
+Although this is acceptable for small projects, when your project scales - this will become incredibly difficult to read and maintain.
+
+So we're going refactor the code into this:
+
+```js copy
+import './App.css'
+import { BrowserRouter } from 'react-router-dom'
+import Router from './pages/router'
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <Router />
+    </BrowserRouter>
+  )
+}
+
+export default App
+```
+
+It's cleaner, scalable and more readble. So let's get started!
+
+Skip this step 👇:
+
+(Already we have project setup so skip this step)
+
+Firstly create our React app in typescript by running the following commands in our terminal:
+
+```js copy
+npx create-react-app eduflow-ui --template typescript
+cd eduflow-ui
+```
+
+Skip this step 👆:
+
+## Create the Pages
+
+We're only going to create two pages, Home and About.
+
+Run the following commands in your terminal:
+
+```
+mkdir src/pages
+mkdir src/pages/Home src/pages/About
+touch src/pages/Home/index.tsx src/pages/About/index.tsx
+```
+
+## What did we just do?
+
+Created pages directory.
+Created two directories inside of pages: `Home` and `About`.
+Created `index.tsx files `for Home and About.
+Add this to your `pages/About/index.tsx` file:
+
+```
+const About = () => {
+  return (
+    <div>
+      <h1>About</h1>
+    </div>
+  );
+};
+
+export default About;
+```
+
+Add this to your `pages/Home/index.tsx` file:
+
+```
+const Home = () => {
+  return (
+    <div>
+      <h1>Home</h1>
+    </div>
+  );
+};
+
+export default Home;
+```
+
+This is pretty self explanatory, we've created two files which represent our pages.
+
+## Creating the types
+
+Let create our types by running the following commands in our terminal:
+
+```
+mkdir src/types
+touch src/types/router.types.ts
+```
+
+Now add this to the newly created types/router.types.ts file:
+
+```
+export interface routerType {
+  title: string;
+  path: string;
+  element: JSX.Element;
+}
+```
+
+## What is happening?
+
+Declare a type for each route:
+
+`titl`e: this will be a `string`
+`path`: this will also be a `string`
+`element`: this will be a `JSX.Element`
+
+## Why declare types?
+
+You'll see shortly that declaring the types will make sure each time we add a page object, it will follow a strict rule pattern and won't compile any errors.
+
+## Creating the Router
+
+Now we're creating our router.
+
+Run this command in your terminal:
+
+```
+touch src/pages/router.tsx src/pages/pagesData.tsx
+```
+
+## Pages Data
+
+Add to `pages/pagesData.tsx`:
+
+```
+import { routerType } from "../types/router.types";
+import About from "./About";
+import Home from "./Home";
+
+const pagesData: routerType[] = [
+  {
+    path: "",
+    element: <Home />,
+    title: "home"
+  },
+  {
+    path: "about",
+    element: <About />,
+    title: "about"
+  }
+];
+
+export default pagesData;
+```
+
+## What is happening?
+
+We've imported our `pages` and `types`.
+Added a `title`, `path` and `element` to each object.
+Every time we want to add a new page, all we have to do is add a new page object into this array. The types will be strict so they must each contain a `title`, `path` and `element`.
+
+## Router File
+
+Add to `pages/router.tsx`
+
+```
+import { Route, Routes } from "react-router-dom";
+import { routerType } from "../types/router.types";
+import pagesData from "./pagesData";
+
+const Router = () => {
+  const pageRoutes = pagesData.map(({ path, title, element }: routerType) => {
+    return <Route key={title} path={`/${path}`} element={element} />;
+  });
+
+  return <Routes>{pageRoutes}</Routes>;
+};
+
+export default Router;
+```
+
+## What is happening?
+
+We're mapping over the pagesData.tsx file and for each object in our data, we are returning a route.
+
+## Update App File
+
+Finally update the App.tsx:
+
+```
+import "./App.css";
+import { BrowserRouter } from "react-router-dom";
+import Router from "./pages/router";
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <Router />
+    </BrowserRouter>
+  );
+};
+
+export default App;
+```
