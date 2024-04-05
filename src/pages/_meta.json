@@ -1,5 +1,6 @@
 {
   "gettingstarted": "Getting Started",
   "docs": "Nextra Doc Setup",
-  "eduflowdocs": "Routing Setup"
+  "eduflowdocs": "Routing Setup",
+  "color": "Customizing Material UI (MUI) Theme "
 }
