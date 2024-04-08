@@ -2,5 +2,6 @@
   "gettingstarted": "Getting Started",
   "docs": "Nextra Doc Setup",
   "eduflowdocs": "Routing Setup",
-  "color": "Customizing Material UI (MUI) Theme "
+  "color": "Customizing Material UI (MUI) Theme",
+  "hooks": "Decouple Your Logic From UI By Creating Your Own React Hooks"
 }
