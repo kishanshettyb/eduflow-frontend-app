@@ -1,0 +1,650 @@
+# Separate Logic and UI with Custom React Hooks
+
+## Improve eduflow Basic Navbar
+
+👇😱The Below code is messup with styles, UI and business logic. It is dificult to maintain and test the component, so I am refactoring this code. if possible maintain this approch to all components
+
+```js copy
+import React, { useEffect, useState } from "react";
+import { AppBar, Toolbar, Typography, InputBase, Menu, MenuItem, Avatar, makeStyles, FormControl, Button, createTheme, ThemeProvider } from "@material-ui/core";
+import SearchIcon from "@material-ui/icons/Search";
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBolt, faCaretDown } from "@fortawesome/free-solid-svg-icons";
+import AccountCircle from "@material-ui/icons/AccountCircle";
+import { faGraduationCap } from "@fortawesome/free-solid-svg-icons";
+import "../styles/Navbar.scss";
+import { Link, useNavigate } from "react-router-dom";
+import { EndPoints } from "./pages/ConstantFiles";
+import { useAuth } from "./AuthProvider";
+import { useAcademicYear } from "../AcademicYearContext";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../i18n/LanguageSwitcher";
+import ProfileDropdown from "./ProfileDropdown";
+import { faUser, faUnlockKeyhole, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../redux/store/store";
+import {
+	setSchoolId,
+	setRoles,
+	setAcademicYearId,
+	setSchoolName,
+	setStaffId,
+	setUserName,
+	setRoleName,
+	setUserType,
+	setAttachmentId,
+	setEnrollmentId,
+	setStudentId,
+	setStudentFirstName,
+	setStudentLastName,
+	setStaffFirstName,
+	setStaffLastName
+} from "../redux/actions/schoolActions";
+import { menuItems, MenuItem as MenuItemType } from "../components/pages/menuItems";
+import { setCurrentRole } from "../redux/actions/schoolActions";
+
+const useStyles = makeStyles((theme) => ({
+	root: {
+		flexGrow: 1
+	},
+	title: {
+		flexGrow: 1,
+		textDecoration: "none",
+		color: "#176B87"
+	},
+	search: {
+		position: "relative",
+		borderRadius: theme.shape.borderRadius,
+		backgroundColor: "rgba(0, 0, 0, 0.15)",
+		"&:hover": {
+			backgroundColor: "rgba(0, 0, 0, 0.25)"
+		},
+		marginRight: theme.spacing(2),
+		marginLeft: 0,
+		width: "20%"
+	},
+	searchIcon: {
+		padding: theme.spacing(0, 2),
+		height: "100%",
+		position: "absolute",
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center"
+	},
+	inputRoot: {
+		color: "inherit"
+	},
+	inputInput: {
+		padding: theme.spacing(1, 1, 1, 0),
+		paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+		transition: theme.transitions.create("width"),
+		width: "100%"
+	},
+	avatar: {
+		marginLeft: theme.spacing(2)
+	},
+	academicYearSelect: {
+		marginRight: theme.spacing(2),
+		minWidth: 120
+	}
+}));
+
+const theme = createTheme({
+	palette: {
+		primary: {
+			main: "#ffffff"
+		}
+	}
+});
+
+const Navbar = () => {
+	const classes = useStyles();
+	const [profileDropdownVisible, setProfileDropdownVisible] = useState(false);
+	const [anchorEl, setAnchorEl] = useState(null);
+	const dispatch = useDispatch();
+	const { academicYears, selectedAcademicYear, setSelectedAcademicYear } = useAcademicYear();
+	const [showRoles, setShowRoles] = useState(false);
+	const { isLoggedIn, logout } = useAuth();
+	const navigate = useNavigate();
+
+	const schoolId = useSelector((state: RootState) => state.school.schoolId);
+	const studentLastName = useSelector((state: RootState) => state.school.studentLastName);
+	const studentFirstName = useSelector((state: RootState) => state.school.studentFirstName);
+	const staffFirstName = useSelector((state: RootState) => state.school.staffFirstName);
+	const staffLastName = useSelector((state: RootState) => state.school.staffLastName);
+	const userName = useSelector((state: RootState) => state.school.userName);
+	const roleName = useSelector((state: RootState) => state.school.roleName);
+	const currentRole = useSelector((state: RootState) => state.school.currentRole);
+
+	const schoolName = useSelector((state: RootState) => state.school.schoolName);
+	const staffId = useSelector((state: RootState) => state.school.staffId);
+	const AttachmentId = useSelector((state: RootState) => state.school.attachmentId);
+	const userType = useSelector((state: RootState) => state.school.userType);
+
+	const [apiImageUrl, setApiImageUrl] = useState<string | undefined>(sessionStorage.getItem("profilePhotoUrl") || "");
+
+	const handleMenuClick = (event: { currentTarget: any }) => {
+		setAnchorEl(event.currentTarget);
+	};
+
+	const handleRoleClick = (role: any) => {
+		// Redirect to related dashboard page based on the selected role
+		dispatch(setCurrentRole(role));
+		switch (role) {
+			case "Admin":
+				navigate("/dashboard/admin");
+				break;
+			case "Teacher":
+				navigate("/dashboard/teacher");
+				break;
+			case "Student":
+				navigate("/dashboard/student");
+				break;
+			default:
+				break;
+		}
+	};
+
+	const handleSwitchRole = () => {
+		setShowRoles(!showRoles);
+	};
+
+	const handleMenuClose = () => {
+		setAnchorEl(null);
+	};
+
+	const handleLogoutClick = () => {
+		sessionStorage.clear();
+		localStorage.clear();
+		localStorage.removeItem("profilePhotoUrl");
+		sessionStorage.removeItem("profilePhotoUrl");
+		setProfileDropdownVisible(false);
+		setAnchorEl(null);
+		logout();
+		navigate("/login");
+	};
+
+	const fetchProfilePhoto = (userType: string) => {
+		let apiUrl;
+
+		switch (userType) {
+			case "STAFF":
+			case "ROLE_TEACHER":
+			case "STUDENT":
+				apiUrl = `${EndPoints.attachments}/schools/${schoolId}/attachments/${AttachmentId}`;
+				break;
+			default:
+				apiUrl = "http://example.com/default-profile-image.jpg";
+				break;
+		}
+
+		fetch(apiUrl, {
+			credentials: "include"
+		})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error("Network response was not ok");
+				}
+
+				return response.blob();
+			})
+
+			.then((blob) => {
+				const imageUrl = URL.createObjectURL(blob);
+
+				setApiImageUrl(imageUrl);
+
+				sessionStorage.setItem("profilePhotoUrl", imageUrl);
+			})
+
+			.catch((error) => {
+				if (error.response && error.response.status !== 400) {
+				}
+			});
+	};
+
+	useEffect(() => {
+		if (isLoggedIn && userType) {
+			fetchProfilePhoto(userType);
+
+			// Set default academic year to the current year
+			const currentYear = new Date().getFullYear();
+			const defaultAcademicYear = academicYears.find((academicYear) => academicYear.title === currentYear.toString());
+
+			if (defaultAcademicYear) {
+				setSelectedAcademicYear(defaultAcademicYear.academicYearId);
+			}
+		}
+	}, [isLoggedIn, userType, academicYears, setSelectedAcademicYear]);
+
+	useEffect(() => {
+		if (isLoggedIn && userType) {
+			dispatch(setStaffFirstName(staffFirstName));
+			dispatch(setStaffLastName(staffLastName));
+			dispatch(setStudentFirstName(studentFirstName));
+			dispatch(setStudentLastName(studentLastName));
+		}
+	}, [isLoggedIn, userType, staffFirstName, staffLastName, studentFirstName, studentLastName]);
+	const { t } = useTranslation();
+
+	return (
+		<ThemeProvider theme={theme}>
+			<div className={classes.root}>
+				<Toolbar>
+					<Typography variant="h6" className={classes.title}>
+						<Link to="/" className="logos">
+							EduFlow
+							<FontAwesomeIcon icon={faGraduationCap} />
+						</Link>
+					</Typography>
+					{isLoggedIn && userType !== "Student" && roleName !== "SuperAdmin" && (
+						<FormControl className={classes.academicYearSelect}>
+							<select
+								data-testid="academic-year-select"
+								style={{
+									backgroundColor: "#fff",
+									border: "1px solid #22577A",
+									borderRadius: "2px",
+									padding: "8px 12px",
+									fontSize: "14px",
+									color: "#22577A",
+									width: "100%",
+									cursor: "pointer",
+									outline: "none",
+									transition: "border-color 0.2s"
+								}}
+								value={selectedAcademicYear || ""}
+								onChange={(e) => setSelectedAcademicYear(e.target.value)}
+							>
+								<option value="">Select Academic Year</option>
+								{academicYears.map((academicYear) => (
+									<option key={academicYear.academicYearId} value={academicYear.academicYearId} selected={academicYear.isDefault}>
+										{academicYear.title}
+									</option>
+								))}
+							</select>
+						</FormControl>
+					)}
+					{isLoggedIn && (
+						<div className={classes.search} style={{ display: "none" }}>
+							<div className={classes.searchIcon}>
+								<SearchIcon />
+							</div>
+							<InputBase
+								placeholder="Search..."
+								classes={{
+									root: classes.inputRoot,
+									input: classes.inputInput
+								}}
+								inputProps={{ "aria-label": "search" }}
+							/>
+						</div>
+					)}
+					<div className="user-info-small-display">
+						{isLoggedIn && (
+							<div>
+								<h5 className="item-title">
+									{currentRole?.includes("SuperAdmin")
+										? userName
+										: currentRole?.includes("Student")
+											? `${studentFirstName} ${studentLastName}`
+											: `${staffFirstName} ${staffLastName}`}
+								</h5>
+								<span>
+									{currentRole?.includes("SuperAdmin")
+										? "Super Admin"
+										: currentRole?.includes("Student")
+											? "Student"
+											: currentRole?.includes("Admin")
+												? "Admin"
+												: currentRole?.includes("Teacher")
+													? "Teacher"
+													: null}
+								</span>
+							</div>
+						)}
+					</div>
+
+					<div className={classes.avatar}>
+						<div>
+							{isLoggedIn && (
+								<div style={{ display: "flex", alignItems: "center" }}>
+									<Avatar className="user-photo" alt="Profile" src={apiImageUrl} onClick={handleMenuClick} data-testid="user-avatar" />
+									<ExpandMoreIcon className="down-arrow-icon" />
+								</div>
+							)}
+							<Menu
+								id="profile-menu"
+								anchorEl={anchorEl}
+								anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+								transformOrigin={{ vertical: "top", horizontal: "right" }}
+								getContentAnchorEl={null}
+								anchorReference="anchorPosition"
+								anchorPosition={{ top: 60, left: 1345 }}
+								open={Boolean(anchorEl)}
+								onClose={handleMenuClose}
+							>
+								{roleName !== "superAdmin" && (
+									<MenuItem component={Link} to={userType === "STAFF" ? "/dashboard/staff/profile" : "/dashboard/profile"} onClick={handleMenuClose}>
+										<FontAwesomeIcon icon={faUser} /> Profile
+									</MenuItem>
+								)}
+								{roleName !== "superAdmin" && (
+									<MenuItem component={Link} to="/dashboard/resetPassword" onClick={handleMenuClose}>
+										<FontAwesomeIcon icon={faUnlockKeyhole} />
+										Change Password
+									</MenuItem>
+								)}
+								{roleName !== "SuperAdmin" && roleName?.length && roleName.length > 2 && (
+									<MenuItem onClick={handleSwitchRole}>
+										<FontAwesomeIcon icon={faBolt} />
+										Switch Role
+									</MenuItem>
+								)}
+
+								{showRoles && Array.isArray(roleName) && roleName?.length && roleName.length > 2 && (
+									<>
+										{roleName
+											.filter((role) => role !== "User")
+											.map((role, index) => (
+												<MenuItem key={index} onClick={() => handleRoleClick(role)}>
+													{role} {role === currentRole && <span className="dot"></span>}
+												</MenuItem>
+											))}
+									</>
+								)}
+
+								<MenuItem onClick={handleLogoutClick}>
+									<FontAwesomeIcon icon={faRightFromBracket} /> Logout
+								</MenuItem>
+							</Menu>
+						</div>
+					</div>
+					{isLoggedIn && (
+						<div className="notification-icons">
+							<i className="fas fa-envelope"></i>
+							<i className="fas fa-bell"></i>
+						</div>
+					)}
+
+					{!isLoggedIn && (
+						<>
+							<div>
+								<Button component={Link} to="/" color="inherit">
+									{t("navbar.home")}
+								</Button>
+								<Button component={Link} to="/about" color="inherit">
+									{t("navbar.aboutUs")}
+								</Button>
+								<Button component={Link} to="/contact" color="inherit">
+									{t("navbar.contactUs")}
+								</Button>
+								<Button component={Link} to="/enquiry" color="inherit">
+									{t("navbar.enquiry")}
+								</Button>
+							</div>
+							<LanguageSwitcher />
+
+							<Link to="/login">
+								<Button onClick={handleLogoutClick} variant="contained" color="primary">
+									{t("navbar.login")}
+								</Button>
+							</Link>
+						</>
+					)}
+				</Toolbar>
+			</div>
+		</ThemeProvider>
+	);
+};
+
+export default Navbar;
+```
+
+## Refactoring Code
+
+Separating business logic and UI :
+
+1.Maintainability: Easier to understand and update each part independently.
+
+2.Reusability: Logic can be reused across the application.
+
+3.Scalability: Facilitates growth and addition of new features.
+
+4.Testing: Allows for effective testing strategies.
+
+5.Collaboration: Promotes better teamwork and collaboration.
+
+### Business Logic: Create `NavbarLogic.tsx`
+
+This file will contain the business logic of the Navbar component, including state management and side effects.
+
+```js copy
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthProvider";
+import { useAcademicYear } from "../AcademicYearContext";
+import { useTranslation } from "react-i18next";
+import { RootState } from "../redux/store/store";
+import {
+  setStaffFirstName,
+  setStaffLastName,
+  setStudentFirstName,
+  setStudentLastName,
+  setCurrentRole,
+} from "../redux/actions/schoolActions";
+import { EndPoints } from "./pages/ConstantFiles";
+
+const useNavbarLogic = () => {
+  const [profileDropdownVisible, setProfileDropdownVisible] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [showRoles, setShowRoles] = useState(false);
+  const { isLoggedIn, logout } = useAuth();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { academicYears, selectedAcademicYear, setSelectedAcademicYear } =
+    useAcademicYear();
+
+  // Fetch profile photo logic
+  // ...
+
+  // Handle role click logic
+  const handleRoleClick = (role: any) => {
+    // Redirect to related dashboard page based on the selected role
+    dispatch(setCurrentRole(role));
+    switch (role) {
+      case "Admin":
+        navigate("/dashboard/admin");
+        break;
+      case "Teacher":
+        navigate("/dashboard/teacher");
+        break;
+      case "Student":
+        navigate("/dashboard/student");
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Handle switch role logic
+  const handleSwitchRole = () => {
+    setShowRoles(!showRoles);
+  };
+
+  // Handle menu close logic
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  // Handle logout click logic
+  const handleLogoutClick = () => {
+    // Logout logic
+    // ...
+  };
+
+  // Fetch profile photo useEffect
+  useEffect(() => {
+    // Fetch profile photo logic
+    // ...
+  }, [isLoggedIn, userType, academicYears, setSelectedAcademicYear]);
+
+  // Dispatch useEffect
+  useEffect(() => {
+    // Dispatch logic
+    // ...
+  }, [
+    isLoggedIn,
+    userType,
+    staffFirstName,
+    staffLastName,
+    studentFirstName,
+    studentLastName,
+  ]);
+
+  return {
+    profileDropdownVisible,
+    setProfileDropdownVisible,
+    anchorEl,
+    setAnchorEl,
+    showRoles,
+    setShowRoles,
+    handleRoleClick,
+    handleSwitchRole,
+    handleMenuClose,
+    handleLogoutClick,
+  };
+};
+
+export default useNavbarLogic;
+
+```
+
+### UI Create file `NavbarUI.tsx`:
+
+This file will contain the UI components and their arrangement without any business logic.
+
+##### Note: I am preserving the existing styles (useStyles) in the file, while ensuring that styles are maintained separately and unnecessary imports are removed.
+
+```js copy
+import React from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  InputBase,
+  Menu,
+  MenuItem,
+  Avatar,
+  makeStyles,
+  FormControl,
+  Button,
+  createTheme,
+  ThemeProvider
+} from '@material-ui/core';
+import SearchIcon from '@material-ui/icons/Search';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBolt, faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Link } from 'react-router-dom';
+import LanguageSwitcher from '../i18n/LanguageSwitcher';
+import ProfileDropdown from './ProfileDropdown';
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    flexGrow: 1
+  },
+  title: {
+    flexGrow: 1,
+    textDecoration: 'none',
+    color: '#176B87'
+  }
+  // Styles omitted for brevity
+}));
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#ffffff'
+    }
+  }
+});
+
+const NavbarUI = (props) => {
+  const classes = useStyles();
+  // Extracting necessary props from props object
+  const {
+    anchorEl,
+    handleMenuClose,
+    handleLogoutClick,
+    handleRoleClick,
+    handleSwitchRole,
+    isLoggedIn,
+    apiImageUrl,
+    currentRole,
+    roleName
+  } = props;
+
+  return (
+    <ThemeProvider theme={theme}>
+      <div className={classes.root}>
+        <Toolbar>{/* UI components go here */}</Toolbar>
+      </div>
+    </ThemeProvider>
+  );
+};
+
+export default NavbarUI;
+```
+
+### Main component Create file `Navbar.tsx`
+
+In your main component file (Navbar.tsx), you can integrate both the logic and UI as follows:
+
+```js copy
+import React from "react";
+import NavbarUI from "./NavbarUI";
+import useNavbarLogic from "./useNavbarLogic";
+
+const Navbar = () => {
+  // Extracting logic using custom hook
+  const {
+    profileDropdownVisible,
+    setProfileDropdownVisible,
+    anchorEl,
+    setAnchorEl,
+    showRoles,
+    setShowRoles,
+    handleRoleClick,
+    handleSwitchRole,
+    handleMenuClose,
+    handleLogoutClick,
+  } = useNavbarLogic();
+
+  // Extracting necessary state and props from Redux or elsewhere
+  const isLoggedIn = useSelector((state: RootState) => state.isLoggedIn);
+  const apiImageUrl = useSelector((state: RootState) => state.apiImageUrl);
+  const currentRole = useSelector((state: RootState) => state.currentRole);
+  const roleName = useSelector((state: RootState) => state.roleName);
+
+  return (
+    <NavbarUI
+      anchorEl={anchorEl}
+      handleMenuClose={handleMenuClose}
+      handleLogoutClick={handleLogoutClick}
+      handleRoleClick={handleRoleClick}
+      handleSwitchRole={handleSwitchRole}
+      isLoggedIn={isLoggedIn}
+      apiImageUrl={apiImageUrl}
+      currentRole={currentRole}
+      roleName={roleName}
+    />
+  );
+};
+
+export default Navbar;
+
+```
