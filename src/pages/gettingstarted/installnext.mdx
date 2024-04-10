@@ -1,175 +1,49 @@
-# Installation
+# Nextra
 
-System Requirements: Node.js 18.17 or later.
+Nextra is a framework on top of Next.js, that lets you build content focused websites. It has all the great features from Next.js, plus extra power to create Markdown-based content with ease.
+Nextra is a framework on top of Next.js, that lets you build content focused websites. It has all the great features from Next.js, plus extra power to create Markdown-based content with ease.
+
+### Installation
 
 ```js copy
-npx create-next-app@latest
+yarn add nextra nextra-theme-docs
 ```
 
-### Setup Eslint, Prettier and Conventiona Commit
-
-Installing Eslint and Prettier:
+Create the following `next.config.mjs` file in your project's root directory:
 
 ```js copy
- yarn add --save-dev eslint prettier eslint-plugin-prettier eslint-config-prettier
+import nextra from 'nextra';
+/** @type {import('next').NextConfig} */
+
+const nextConfig = {};
+const withNextra = nextra({
+  theme: 'nextra-theme-docs',
+  themeConfig: './theme.config.jsx'
+});
+
+export default withNextra(nextConfig);
 ```
 
-Now, on the root of the project create a file named .eslintrc.js Note(Already Next Js projected created `.eslintrc.json` file rename it to `.eslintrc.js` )
+### Create Docs Theme Config Text
+
+Lastly, create the corresponding `theme.config.jsx` file in your project's root directory. This will be used to configure the Nextra Docs theme:
 
 ```js copy
-module.exports = {
-  extends: ["next", "prettier", "next/core-web-vitals"],
-  plugins: ["react", "react-hooks", "prettier"],
-  rules: {
-    quotes: ["error", "single"],
-    semi: ["error", "always"],
-    "no-unused-vars": [
-      "error",
-      {
-        args: "after-used",
-        caughtErrors: "none",
-        ignoreRestSiblings: true,
-        vars: "all",
-      },
-    ],
-    "prefer-const": "error",
-    "react-hooks/exhaustive-deps": "error",
-  },
-};
-```
-
-Now, on the root of the project create a file named `prettier.config.js`
-
-```js copy
-module.exports = {
-  singleQuote: true,
-  arrowParens: "always",
-  trailingComma: "none",
-  jsxBracketSameLine: true,
-  printWidth: 100,
-  tabWidth: 2,
-  semi: false,
-};
-```
-
-Now, let's install Husky and create a hook named `.husky/pre-commit` on the root of our project running the following command:
-
-```js copy
-npx husky-init && npm install
-npm install husky --save-dev
-npx husky install
-```
-
-After running the command above, husky will create a hook on the folder .husky named `pre-commit`, and inside it will be prompt a script like this:
-
-```js copy
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-npm test
-```
-
-Now add a new script on the package.json: This script will active hooks automatically on installation
-
-```js copy
-"prepare": "husky && husky install"
-```
-
-Installing and creating the lint-staged on the project:
-
-```js copy
-npm install --save-dev lint-staged
-```
-
-Change npm test to npx lint-staged on husky hooks named `pre-commit` installed before, your code looks like this:
-
-```js copy
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-npx lint-staged
-```
-
-Now, create a new config on the `package.json` of lint-staged:
-
-```js copy
-{
-...
-"lint-staged": {
-    "*.{js,ts,jsx,tsx}": [
-      "eslint --fix",
-      "eslint",
-      "prettier --write"
-    ],
-    "*.json": [
-      "prettier --write"
-    ]
-  },
-...
-}
-```
-
-Installing Commitizen on the project:
-
-```js copy
-yarn add --save-dev commitizen cz-conventional-changelog @commitlint/cli @commitlint/config-conventional
-```
-
-Create a new file on the root of the project named `commitlint.config.js`, and paste the following code:
-
-```js copy
-module.exports = { extends: ["@commitlint/config-conventional"] };
-```
-
-Now add a new commitizen script on the package.json:
-
-```js copy
-{
-...
-"config": {
-  "commitizen": {
-    "path": "./node_modules/cz-conventional-changelog"
+export default {
+  logo: <span>EduFLow Documentation</span>,
+  project: {
+    link: 'https://github.com/shuding/nextra'
   }
-},
-...
-}
+  // ... other theme options
+};
 ```
 
-Now add a new commitizen script on the package.json:
+### Ready to Go!
+
+Now, you can create your first MDX page as pages/docs.mdx:
 
 ```js copy
-"scripts": {
-...
-  "commit": "git-cz",
-...
-}
+# Welcome to EduFlow Documentation
+
+EduFlow Docs !!!
 ```
-
-Now, let's create two more hooks inside of the folder that was created before named .husky on the root of the project:
-Create the first file named `prepare-commit-msg` and past the following code:
-
-```js copy
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-exec < /dev/tty && npx git-cz --hook || true
-```
-
-Create the second file named `commit-msg` and past the following code:
-
-```js copy
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-npx commitlint --edit $1
-```
-
-It's important to run this command before commits:
-
-```js copy
-chmod +x .husky/*
-```
-
-After doing the steps above your folder will be like this:
-
-Now, you can run on the terminal, `git add .` and then `git commit`, lint-staged will
-check your code, so if all code is okay, then commitizen shows all conventional commits
-like this picture below:
