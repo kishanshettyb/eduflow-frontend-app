@@ -1,4 +1,0 @@
-{
-  "bestpractice": "Separate Logic and UI with Custom React Hooks",
-  "fix": "fix component folder structure"
-}

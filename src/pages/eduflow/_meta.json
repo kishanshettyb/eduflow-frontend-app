@@ -1,7 +1,0 @@
-{
-  "folderstructure": "Folder Structure",
-  "eslintsetup": "Setup eslint, prettier - React Typescript",
-  "router": "React Routing Setup",
-  "color": "Customizing Material UI (MUI) Theme",
-  "hooks": "Decouple Your Logic From UI By Creating Your Own React Hooks"
-}

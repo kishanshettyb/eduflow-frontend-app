@@ -1,6 +1,11 @@
 {
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["jest"],
+    "typeRoots": [
+      "node_modules/@types"
+      // other paths if needed
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,

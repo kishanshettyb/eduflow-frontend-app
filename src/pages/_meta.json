@@ -1,5 +1,5 @@
 {
-  "gettingstarted": "Getting Started",
-  "eduflow": "EduFlow Review - Basics",
-  "project": "EduFlow Review - Project Level"
+  "doc": "Documentation",
+  "install": "Installating Jest",
+  "dropzone": "Drop Zone"
 }

@@ -1,7 +1,9 @@
+import Image from 'next/image';
+
 export default {
-  logo: <span>EduFLow Documentation</span>,
-  project: {
-    link: 'https://github.com/shuding/nextra'
-  }
-  // ... other theme options
-}
+  logo: (
+    <span>
+      <Image src="/eduflowicon.png" alt="Edu Flow" width="30" height="30" />
+    </span>
+  )
+};
